@@ -1,10 +1,51 @@
 
+name: Build C++ to EXE
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Debug repository files
         shell: pwsh
         run: |
-          Write-Host "Lokasi repository:"
-          Get-Location
-
-          Write-Host "Daftar semua file:"
-          Get-ChildItem -Force -Recurse |
+          Write-Host "Daftar file C++:"
+          Get-ChildItem -Path . -Recurse -File |
+            Where-Object { $_.Extension -eq ".cpp" } |
             Select-Object FullName
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: mingw-w64-x86_64-gcc
+
+      - name: Compile C++ to EXE
+        shell: msys2 {0}
+        run: |
+          FILE=$(find . -type f -iname "*.cpp" \
+            -not -path "./.git/*" | head -n 1)
+
+          if [ -z "$FILE" ]; then
+            echo "ERROR: File CPP tidak ditemukan!"
+            exit 1
+          fi
+
+          echo "Mengompilasi: $FILE"
+          g++ "$FILE" -o program.exe
+
+      - name: Upload EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: program-exe
+          path: program.exe
