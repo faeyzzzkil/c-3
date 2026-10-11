@@ -14,6 +14,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Check C++ files
+        shell: pwsh
+        run: |
+          Get-ChildItem -Recurse -Filter *.cpp
+
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         with:
@@ -23,7 +28,17 @@ jobs:
 
       - name: Compile C++ to EXE
         shell: msys2 {0}
-        run: g++ main.cpp -o program.exe
+        run: |
+          FILE=$(find . -type f -name "*.cpp" \
+            -not -path "./.git/*" | head -n 1)
+
+          if [ -z "$FILE" ]; then
+            echo "ERROR: File CPP tidak ditemukan!"
+            exit 1
+          fi
+
+          echo "Mengompilasi: $FILE"
+          g++ "$FILE" -o program.exe
 
       - name: Upload EXE
         uses: actions/upload-artifact@v4
