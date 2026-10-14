@@ -33,7 +33,7 @@ jobs:
             exit 1
           fi
           echo "Mengompilasi: $FILE"
-          g++ "$FILE" -o program.exe -static-libgcc -static-libstdc++
+          g++ "$FILE" -o program.exe -static-libgcc -static-libstdc++ -static
       - name: Upload EXE
         uses: actions/upload-artifact@v4
         with:
